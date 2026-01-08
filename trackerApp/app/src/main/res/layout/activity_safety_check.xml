@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0d1117"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="#161b22"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:paddingBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_shield"
+                        android:tint="#10b981" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Safety Check"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#e5e7eb" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Simulated deep system inspection."
+                    android:textColor="#9ca3af"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#374151"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:paddingTop="16dp">
+
+                <!-- Initial State -->
+                <LinearLayout
+                    android:id="@+id/initial_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="#111827"
+                        android:padding="32dp"
+                        android:layout_marginBottom="24dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your system is currently protected."
+                            android:textColor="#d1d5db"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ready to perform a quick scan of your system files."
+                            android:textColor="#6b7280"
+                            android:textSize="14sp"
+                            android:layout_marginTop="8dp" />
+
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/scan_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Start Full System Scan"
+                        android:background="@drawable/button_bg"
+                        android:textColor="#ffffff"
+                        android:textStyle="bold"
+                        android:padding="12dp" />
+
+                </LinearLayout>
+
+                <!-- Scanning State -->
+                <LinearLayout
+                    android:id="@+id/scanning_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/scan_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Scanning... Please wait."
+                        android:textColor="#eab308"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="12dp"
+                        android:progress="0"
+                        android:max="100"
+                        android:progressTint="#10b981"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/progress_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0% Complete"
+                        android:textColor="#9ca3af"
+                        android:textSize="14sp"
+                        android:gravity="end"
+                        android:layout_marginBottom="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:orientation="horizontal"
+                        android:background="#111827"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_file"
+                            android:tint="#6b7280" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Scanning File:"
+                                android:textColor="#6b7280"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/current_file"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="C:\\"
+                                android:textColor="#d1d5db"
+                                android:textSize="14sp"
+                                android:fontFamily="monospace" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Result State -->
+                <LinearLayout
+                    android:id="@+id/result_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:gravity="center"
+                    android:padding="32dp"
+                    android:background="#064e3b"
+                    android:layout_margin="16dp">
+
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_marginBottom="16dp"
+                        android:src="@drawable/ic_check"
+                        android:tint="#10b981" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Scan Complete"
+                        android:textColor="#10b981"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No Threats Found."
+                        android:textColor="#ffffff"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/scan_summary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="#d1d5db"
+                        android:textSize="14sp"
+                        android:layout_marginTop="16dp" />
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Run New Scan"
+                        android:background="@drawable/button_bg_gray"
+                        android:textColor="#ffffff"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:layout_marginTop="24dp"
+                        android:onClick="resetScanner" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

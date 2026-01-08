@@ -1,0 +1,1 @@
+Dashboard: replace <YOUR_PC_IP> in src/App.js with your machine IP, then npm install and npm start.\n

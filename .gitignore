@@ -1,0 +1,33 @@
+node_modules
+# Secrets
+*.json
+server/*.json
+.env
+.env.*
+
+# IDE junk
+.vs/
+.idea/
+.local/
+
+# Node
+node_modules/
+dashboard/node_modules/
+server/node_modules/
+
+# Build
+build/
+# Secrets
+*.json
+.env
+.env.*
+
+# IDE
+.vs/
+.idea/
+.local/
+
+# Node
+node_modules/
+dashboard/node_modules/
+server/node_modules/

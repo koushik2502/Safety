@@ -1,0 +1,17 @@
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Settings file 'C:\Users\koush\.vscode\Ecet\trackerApp\android\settings.gradle' line: 7
+
+* What went wrong:
+A problem occurred evaluating settings 'trackerApp'.
+> Could not read script 'C:\Users\koush\.vscode\Ecet\trackerApp\node_modules\react-native\react.gradle' as it does not exist.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 3s

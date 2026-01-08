@@ -1,0 +1,96 @@
+﻿> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+
+> Configure project :app
+The StartParameter.isConfigurationCacheRequested property has been deprecated. This is scheduled to be removed in Gradle 10.0. Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. Consult the upgrading guide for further information: https://docs.gradle.org/8.14.3/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested
+	at build_esh3azl2by59nj45zc51gpcs1.run(C:\Users\koush\.vscode\Ecet\trackerApp\android\app\build.gradle:2)
+	(Run with --stacktrace to get the full stack trace of this deprecation warning.)
+
+[Incubating] Problems report is available at: file:///C:/Users/koush/.vscode/Ecet/trackerApp/android/build/reports/problems/problems-report.html
+.\gradlew : 
+At line:1 char:1
++ .\gradlew clean 
+assembleDebug 
+--warning-mode all 2>&1 | 
+Out-File -Fil ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: (:Stri  
+  ng) [], RemoteException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+FAILURE: Build completed 
+with 2 failures.
+
+1: Task failed with an 
+exception.
+-----------
+* Where:
+Build file 'C:\Users\koush\.
+vscode\Ecet\trackerApp\andro
+id\app\build.gradle' line: 3
+
+* What went wrong:
+A problem occurred 
+evaluating project ':app'.
+> Plugin with id 
+'com.facebook.react' not 
+found.
+
+* Try:
+> Run with --stacktrace 
+option to get the stack 
+trace.
+> Run with --info or 
+--debug option to get more 
+log output.
+> Run with --scan to get 
+full insights.
+> Get more help at 
+https://help.gradle.org.
+============================
+============================
+======================
+
+2: Task failed with an 
+exception.
+-----------
+* What went wrong:
+A problem occurred 
+configuring project ':app'.
+> com.android.builder.errors
+.EvalIssueException: 
+compileSdkVersion is not 
+specified. Please add it to 
+build.gradle
+
+* Try:
+> Run with --stacktrace 
+option to get the stack 
+trace.
+> Run with --info or 
+--debug option to get more 
+log output.
+> Run with --scan to get 
+full insights.
+> Get more help at 
+https://help.gradle.org.
+============================
+============================
+======================
+
+BUILD FAILED in 4s
+6 actionable tasks: 6 up-to-date
