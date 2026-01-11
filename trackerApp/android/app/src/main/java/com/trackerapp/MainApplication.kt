@@ -1,5 +1,6 @@
-package com.trackerapp
 
+package com.trackerapp
+import com.trackerapp.LockPackage 
 import android.app.Application
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication

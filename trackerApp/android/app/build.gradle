@@ -53,8 +53,7 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
 
-    /* Autolinking */
-    autolinkLibrariesWithApp()
+    // The autolinkLibrariesWithApp() line was removed as it is a legacy command
 }
 
 /**
@@ -76,14 +75,14 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
-    ndkVersion = "25.2.9519653"
-    compileSdkVersion = 34
+    ndkVersion = rootProject.ext.ndkVersion
+    compileSdk = rootProject.ext.compileSdkVersion
 
     namespace "com.trackerapp"
     defaultConfig {
         applicationId "com.trackerapp"
-        minSdkVersion = 24
-        targetSdkVersion = 34
+        minSdkVersion = rootProject.ext.minSdkVersion
+        targetSdkVersion = rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         ndk {
@@ -91,6 +90,7 @@ android {
         }
             externalNativeBuild {
                 cmake {
+                    arguments "-DANDROID_STL=c++_shared", "-DCMAKE_CXX_STANDARD=20", "-DCMAKE_CXX_STANDARD_REQUIRED=ON", "-DCMAKE_CXX_EXTENSIONS=OFF"
                     cppFlags "-std=c++20"
                 }
             }
@@ -114,15 +114,6 @@ android {
             minifyEnabled = enableProguardInReleaseBuilds
             proguardFiles = [getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"]
         }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += "-Xskip-metadata-version-check"
     }
 }
 
