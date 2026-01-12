@@ -61,6 +61,9 @@ react {
  */
 def enableProguardInReleaseBuilds = false
 
+// ensure hermes flag is read safely (string form expected by .toBoolean())
+def hermesEnabled = project.hasProperty('hermesEnabled') ? project.property('hermesEnabled') : 'false'
+
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
  *
@@ -81,19 +84,20 @@ android {
     namespace "com.trackerapp"
     defaultConfig {
         applicationId "com.trackerapp"
-        minSdkVersion = rootProject.ext.minSdkVersion
-        targetSdkVersion = rootProject.ext.targetSdkVersion
+        // use modern DSL property names
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
-            externalNativeBuild {
-                cmake {
-                    arguments "-DANDROID_STL=c++_shared", "-DCMAKE_CXX_STANDARD=20", "-DCMAKE_CXX_STANDARD_REQUIRED=ON", "-DCMAKE_CXX_EXTENSIONS=OFF"
-                    cppFlags "-std=c++20"
-                }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared", "-DCMAKE_CXX_STANDARD=20", "-DCMAKE_CXX_STANDARD_REQUIRED=ON", "-DCMAKE_CXX_EXTENSIONS=OFF"
+                cppFlags "-std=c++20"
             }
+        }
     }
     signingConfigs {
         debug {
@@ -124,7 +128,14 @@ dependencies {
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
-        implementation = jscFlavor
+        // fix: don't assign; add JSC dependency correctly
+        implementation jscFlavor
     }
 
+    implementation "com.google.firebase:firebase-messaging:23.2.0"
+    // React Native Firebase uses BOM in some setups; adjust if you use BOM
+    // notifee native dependency is handled by package's instructions
 }
+
+// ensure repositories
+// in android/build.gradle or settings, ensure google() and mavenCentral() present

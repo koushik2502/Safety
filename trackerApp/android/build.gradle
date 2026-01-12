@@ -1,27 +1,22 @@
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
-        minSdkVersion = 24
-        compileSdkVersion = 34
-        targetSdkVersion = 34
+        // use an AGP version compatible with Gradle 7.6
+        androidGradlePluginVersion = "7.5.1"
+        kotlinVersion = "1.8.10"
+        // common SDK versions (if you don't already define them)
+        buildToolsVersion = "33.0.2"
+        minSdkVersion = 21
+        compileSdkVersion = 33
+        targetSdkVersion = 33
         ndkVersion = "25.2.9519653"
-        kotlinVersion = "2.1.0"
-        reactNativeVersion = "0.81.4"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.11.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
+        classpath("com.android.tools.build:gradle:${androidGradlePluginVersion}")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+        classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }

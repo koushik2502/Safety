@@ -1,23 +1,9 @@
 pluginManagement {
-    // This block tells Gradle where to find plugins and their dependencies.
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-    // This includes the React Native plugin from your node_modules folder.
-    includeBuild('../node_modules/@react-native/gradle-plugin')
+    includeBuild("../node_modules/@react-native/gradle-plugin")
 }
-
-// This applies the settings plugin to your project.
 plugins {
     id("com.facebook.react.settings")
 }
 
 rootProject.name = 'trackerApp'
 include ':app'
-
-// This is a crucial step to configure the settings plugin to find and link your native modules.
-extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-    ex.autolinkLibrariesFromCommand()
-}
