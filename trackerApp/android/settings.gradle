@@ -8,7 +8,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.facebook.react")
+    id("com.android.application") version "8.2.1" apply false
+    // Note: No react plugins here, we applied 'rootproject' in build.gradle instead
 }
 
 rootProject.name = 'trackerApp'
@@ -20,3 +21,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+// This is the magic line that tells Android where to find libraries like Firebase
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle");
+applyNativeModulesSettingsGradle(settings)

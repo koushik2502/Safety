@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Check - Control Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Custom styles for professional look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            /* Dark Background */
+            color: #e5e7eb;
+        }
+
+        .container {
+            max-width: 1400px;
+        }
+
+        .dashboard-card {
+            background-color: #161b22;
+            /* Card Background */
+            border: 1px solid #30363d;
+            /* Subtle border for definition */
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.05);
+            /* Very subtle emerald glow */
+        }
+
+        /* Custom emerald accent colors */
+        .bg-emerald-600 {
+            background-color: #059669;
+        }
+
+        .hover\:bg-emerald-700:hover {
+            background-color: #047857;
+        }
+
+        .text-emerald-400 {
+            color: #34d399;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <div id="app">
+
+        <!-- Navigation Bar -->
+        <header class="bg-black/20 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-700/50">
+            <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <!-- Logo/Brand -->
+                <a href="#" class="flex items-center space-x-2">
+                    <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.276A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 4.78C2.809 7.74 2 8.79 2 10.038V19a2 2 0 002 2h16a2 2 0 002-2v-8.962c0-1.248-.809-2.298-2.382-2.757z">
+                        </path>
+                    </svg>
+                    <span class="text-xl font-bold text-gray-100">Safety Check Dashboard</span>
+                </a>
+
+                <!-- Quick Controls -->
+                <div class="flex space-x-4 text-sm">
+                    <button
+                        class="text-gray-400 hover:text-emerald-400 transition hidden sm:inline-block">Settings</button>
+                    <button
+                        class="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg font-semibold transition text-xs sm:text-sm">Log
+                        Out</button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h1 class="text-3xl font-bold mb-8 text-gray-100">System Control</h1>
+
+            <!-- Grid Structure: Left (2/5) vs Right (3/5) -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+                <!-- Left Column (Online Devices & Command) - 2/5 width on desktop -->
+                <div class="lg:col-span-2 space-y-6 flex flex-col">
+
+                    <!-- 1. Online Devices List -->
+                    <div class="dashboard-card p-6 rounded-xl flex-grow overflow-hidden">
+                        <h2 class="text-2xl font-semibold mb-6 text-emerald-400 border-b border-gray-700/50 pb-3">Online
+                            Devices</h2>
+
+                        <div id="devices" class="space-y-4 overflow-y-auto max-h-[300px] lg:max-h-full">
+                            <!-- Devices will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Command Box and Force Open (Below Online Devices on the left) -->
+                    <div class="dashboard-card p-6 rounded-xl">
+                        <h2 class="text-2xl font-semibold mb-4 text-white border-b border-gray-700/50 pb-3">Device
+                            Command & Override</h2>
+
+                        <p class="text-gray-400 mb-4 text-sm">Select a device, write a command, or use the emergency
+                            override.</p>
+
+                        <!-- Device Selection Dropdown -->
+                        <select id="deviceSelect"
+                            class="p-3 bg-gray-700 border border-gray-600 rounded-lg text-white w-full mb-4 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                            <option value="">Select Target Device...</option>
+                        </select>
+
+                        <!-- Command Box -->
+                        <textarea id="commandInput"
+                            class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 resize-none mb-4 focus:ring-emerald-500 focus:border-emerald-500"
+                            rows="3"
+                            placeholder="Enter custom command (e.g., 'GET_STATUS', 'REBOOT_DEVICE')..."></textarea>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-4">
+                            <button onclick="sendCommand()"
+                                class="py-2 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm flex-grow transition">
+                                Send Command
+                            </button>
+                            <button onclick="forceOpen()"
+                                class="py-2 px-6 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg text-sm transition shadow-lg shadow-red-900/50">
+                                OPEN APP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Map and SMS Log) - 3/5 width on desktop -->
+                <div class="lg:col-span-3 space-y-6 flex flex-col">
+
+                    <!-- 1. Map Visualization Section (Takes center-right space) -->
+                    <div class="dashboard-card p-6 rounded-xl flex-grow">
+                        <h2 class="text-2xl font-semibold mb-4 text-white border-b border-gray-700/50 pb-3">Map
+                            Visualization (Center Right)</h2>
+
+                        <div id="map"></div>
+                    </div>
+
+                    <!-- 2. SMS Log Section (Below Map) -->
+                    <div class="dashboard-card p-6 rounded-xl">
+                        <h2 class="text-2xl font-semibold mb-4 text-white border-b border-gray-700/50 pb-3">Recent SMS
+                            Log</h2>
+
+                        <div id="sms" class="space-y-3 h-48 overflow-y-auto pr-2">
+                            <!-- SMS will be populated here -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer (Simple) -->
+        <footer class="bg-gray-900 border-t border-gray-700/50 mt-12 py-4">
+            <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+                Safety Check Control Panel &copy; 2025
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let deviceMarkers = {};
+        let onlineDevices = new Set();
+        const socketUrl = 'https://subopaquely-podophyllic-nicola.ngrok-free.dev';
+        console.log('=== DASHBOARD SOCKET DEBUG ===');
+        console.log('Attempting to connect to:', socketUrl);
+        console.log('Current page URL:', window.location.href);
+
+        const socket = io(socketUrl, {
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 2000,
+            timeout: 10000
+        });
+
+        socket.on('connect', () => {
+            console.log('=== DASHBOARD CONNECTED ===');
+            console.log('Connected with socket ID:', socket.id);
+            console.log('Transport:', socket.io.engine.transport.name);
+        });
+
+        socket.on('connect_error', (err) => {
+            console.log('=== DASHBOARD CONNECTION ERROR ===');
+            console.log('Connection failed:', err);
+            console.log('Attempted URL:', socketUrl);
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log('=== DASHBOARD DISCONNECTED ===');
+            console.log('Reason:', reason);
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log('Dashboard reconnection attempt #', attemptNumber);
+        });
+
+        function initMap() {
+            map = L.map('map').setView([0, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        function getColorFromDeviceId(deviceId) {
+            let hash = 0;
+            for (let i = 0; i < deviceId.length; i++) {
+                hash = deviceId.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            // Return a hue value between 0 and 360
+            return Math.abs(hash) % 360;
+        }
+
+        function updateData(data) {
+            const container = document.getElementById('devices');
+            container.innerHTML = '';
+            const smsContainer = document.getElementById('sms');
+            smsContainer.innerHTML = '';
+            const deviceSelect = document.getElementById('deviceSelect');
+            deviceSelect.innerHTML = '<option value="">Select Target Device...</option>';
+
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+            for (const deviceId in data) {
+                if (!onlineDevices.has(deviceId)) continue; // Only show online devices
+                const sortedEntries = data[deviceId].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                const latestEntry = sortedEntries[0];
+
+                deviceSelect.innerHTML += `<option value="${deviceId}">${deviceId}</option>`;
+                const deviceDiv = document.createElement('div');
+                deviceDiv.className = 'flex items-center justify-between p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition cursor-pointer';
+                const statusColor = latestEntry ? 'bg-emerald-500' : 'bg-red-500';
+                deviceDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 rounded-full ${statusColor} mr-3 animate-pulse"></span>
+                        <div>
+                            <p class="font-medium">${deviceId} (${latestEntry ? 'Active' : 'Offline'})</p>
+                            <p class="text-xs text-gray-400">Last seen: ${latestEntry ? new Date(latestEntry.timestamp).toLocaleString() : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mt-2">
+                        <span class="text-sm text-emerald-400 cursor-pointer hover:text-emerald-300" onclick="sendCommand('${deviceId}', 'lock')">[Lock Screen]</span>
+                        <span class="text-sm text-red-400 cursor-pointer hover:text-red-300" onclick="sendCommand('${deviceId}', 'freeze')">[Freeze]</span>
+                        <span class="text-sm text-blue-400 cursor-pointer hover:text-blue-300" onclick="sendCommand('${deviceId}', 'unfreeze')">[Unfreeze]</span>
+                    </div>
+                `;
+                container.appendChild(deviceDiv);
+
+                const allSms = [];
+                data[deviceId].forEach(entry => {
+                    if (entry.sms && entry.sms.length > 0) {
+                        entry.sms.forEach(sms => {
+                            if (new Date(sms.ts) >= oneDayAgo) {
+                                allSms.push({ ...sms, deviceId });
+                            }
+                        });
+                    }
+                });
+                allSms.sort((a, b) => new Date(b.ts) - new Date(a.ts)); // Sort by time descending
+                allSms.forEach(sms => {
+                    const smsDiv = document.createElement('div');
+                    smsDiv.className = 'text-sm border-b border-gray-800 pb-2';
+                    smsDiv.innerHTML = `<span class="text-emerald-400">[${new Date(sms.ts).toLocaleTimeString()}]</span> <span class="text-gray-400 font-mono">${sms.deviceId}:</span> ${sms.text}`;
+                    smsContainer.appendChild(smsDiv);
+                });
+
+                if (latestEntry && latestEntry.location && latestEntry.location.lat && latestEntry.location.lon && new Date(latestEntry.timestamp) >= oneDayAgo) {
+                    const hue = getColorFromDeviceId(deviceId);
+                    const icon = L.divIcon({
+                        className: 'custom-marker',
+                        html: `<img src="public/custom-pin.jpg" style="filter: hue-rotate(${hue}deg) drop-shadow(0px 5px 5px rgba(0,0,0,0.5)); width: 40px; height: 40px; display: block;">`,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40], // Center bottom (tip of pin)
+                        popupAnchor: [0, -40]
+                    });
+                    let marker = deviceMarkers[deviceId];
+                    if (marker) {
+                        marker.setLatLng([latestEntry.location.lat, latestEntry.location.lon]);
+                        marker.setIcon(icon); // Update icon in case color changed or re-render
+                        marker.setPopupContent(`Device: ${deviceId}<br>Time: ${latestEntry.timestamp}`);
+                    } else {
+                        marker = L.marker([latestEntry.location.lat, latestEntry.location.lon], { icon }).addTo(map);
+                        marker.bindPopup(`Device: ${deviceId}<br>Time: ${latestEntry.timestamp}`);
+                        deviceMarkers[deviceId] = marker;
+                    }
+                    markers.push(marker);
+                }
+            }
+        }
+
+        function sendCommand() {
+            const deviceId = document.getElementById('deviceSelect').value;
+            const command = document.getElementById('commandInput').value.trim();
+            if (!deviceId || !command) {
+                alert('Please select a device and enter a command');
+                return;
+            }
+            socket.emit('command', { deviceId, command });
+            alert('Command sent');
+            document.getElementById('commandInput').value = '';
+        }
+
+        function forceOpen() {
+            const deviceId = document.getElementById('deviceSelect').value;
+            const command = document.getElementById('commandInput').value.trim();
+            if (!deviceId) {
+                alert('Please select a device');
+                return;
+            }
+            if (!command) {
+                alert('Please enter an app name or command');
+                return;
+            }
+            socket.emit('command', { deviceId, command });
+            alert('Command sent: ' + command);
+            document.getElementById('commandInput').value = '';
+        }
+
+        socket.on('deviceOnline', ({ deviceId }) => {
+            onlineDevices.add(deviceId);
+            // Optionally update UI immediately, but dataUpdate will handle it
+        });
+
+        socket.on('deviceOffline', ({ deviceId }) => {
+            onlineDevices.delete(deviceId);
+            // Remove marker for offline device
+            if (deviceMarkers[deviceId]) {
+                map.removeLayer(deviceMarkers[deviceId]);
+                delete deviceMarkers[deviceId];
+            }
+        });
+
+        socket.on('dataUpdate', (data) => {
+            updateData(data);
+        });
+
+        initMap();
+    </script>
+
+</body>
+
+</html>

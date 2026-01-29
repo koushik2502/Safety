@@ -1,10 +1,11 @@
 buildscript {
     ext {
+        buildToolsVersion = "34.0.0"
         minSdkVersion = 24
-        compileSdkVersion = 29
-        targetSdkVersion = 29
-        ndkVersion = "25.2.9519653"
-        kotlinVersion = "1.8.22"
+        compileSdkVersion = 34
+        targetSdkVersion = 34
+        ndkVersion = "26.1.10909125"
+        kotlinVersion = "1.9.22"
     }
     repositories {
         google()
@@ -16,16 +17,15 @@ buildscript {
     }
 }
 
+// CHANGE: Use this block instead of "apply plugin".
+// This allows Gradle to find the plugin inside your node_modules.
+plugins {
+    id("com.facebook.react.rootproject")
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
-    }
-
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-        kotlinOptions {
-            allWarningsAsErrors = false
-            freeCompilerArgs -= ["-Werror"]
-        }
     }
 }

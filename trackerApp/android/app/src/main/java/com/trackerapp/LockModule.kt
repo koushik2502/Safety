@@ -74,4 +74,21 @@ class LockModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMo
     fun isDeviceOwner(promise: Promise) {
         promise.resolve(dpm.isDeviceOwnerApp(reactApplicationContext.packageName))
     }
+    @ReactMethod
+    fun openTargetApp(packageName: String) {
+        try {
+            val launchIntent = reactApplicationContext
+                .packageManager
+                .getLaunchIntentForPackage(packageName)
+
+            if (launchIntent != null) {
+                // Required to start activity from outside an Activity context
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                reactApplicationContext.startActivity(launchIntent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
 }
